@@ -1,4 +1,6 @@
 from random import random, randint, choices
+import sys
+from math import inf
 
 def collide(one, two):
 	x1,y1 = one
@@ -28,7 +30,7 @@ def tournament(participants):
 	:param participants:list - lista de individuos
 	:return:list melhor individuo da lista recebida
 	"""
-	return max(participants, key=evaluate)
+	return min(participants, key=evaluate)
 
 
 def crossover(parent1, parent2, index):
@@ -75,16 +77,31 @@ def run_ga(g, n, k, m, e):
 	:param e:bool - se vai haver elitismo
 	:return:list - melhor individuo encontrado
 	"""
-	population = [randint(1,8) for _ in range(n)]
+	population = [[ randint(1,8) for _ in range(8)] for _ in range(n)]
 	for _ in range(g):
 		new_pop = []
 		if e:
-			new_pop.append(max(population, key=evaluate))
+			new_pop.append(min(population, key=evaluate))
 		while len(new_pop) < n:
-			parent1 = tournament(choices(population, k))
-			parent2 = tournament(choices(population, k))
+			parent1 = tournament(choices(population, k=k))
+			parent2 = tournament(choices(population, k=k))
 			n1,n2 = crossover(parent1, parent2, randint(0,7))
 			new_pop.append(mutate(n1,m))
 			new_pop.append(mutate(n2,m))
 		population = new_pop
-	return max(population, key=evaluate)
+	return min(population, key=evaluate)
+
+
+best = inf
+
+for g in range(5,20):
+	for n in range(10,30):
+		for k in range(1,n):
+			for m in [0,0.25,0.5,0.75,1]:
+				ga = run_ga(g,n,k,m,True)
+				ega = evaluate(ga)
+				if ega < best:
+					print(f"new best found with g={g} n={n} k={k} m={m} with value={ega}")
+					best = ega
+				if ega == 0:
+					print(f"solution found with g={g} n={n} k={k} m={m}, solution={ga}")
